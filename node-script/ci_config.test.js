@@ -26,6 +26,13 @@ const expectedNodeBuilds = {
   },
 };
 
+const desktopBuildWorkflows = [
+  'build_14.yml',
+  'build_16.yml',
+  'build_16_withssl.yml',
+  ...Object.values(expectedNodeBuilds).map((config) => config.file),
+];
+
 const removedPlatformFiles = [
   'android-configure',
   'android-configure-static',
@@ -82,6 +89,18 @@ for (const [major, config] of Object.entries(expectedNodeBuilds)) {
   assert(
     fs.existsSync(path.join(repoRoot, 'patchs', `lib_uv_add_on_watcher_queue_updated_v${config.version}.patch`)),
     `missing libuv patch for Node ${config.version}`
+  );
+}
+
+for (const workflowFile of desktopBuildWorkflows) {
+  const workflow = readText(path.join('.github', 'workflows', workflowFile));
+  assert(
+    workflow.includes('Install Linux build dependencies'),
+    `${workflowFile} must install Linux dependencies before running linux.sh`
+  );
+  assert(
+    workflow.includes('libc++-dev') && workflow.includes('libc++abi-dev'),
+    `${workflowFile} must install libc++ headers because linux.sh builds with -stdlib=libc++`
   );
 }
 
