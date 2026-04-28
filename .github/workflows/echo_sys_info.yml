@@ -1,41 +1,28 @@
 name: echo_sys_info
 
-on: 
+on:
   workflow_dispatch:
 
-
 jobs:
+  windows_info:
+    name: Windows system info
+    runs-on: windows-latest
+    steps:
+      - name: Run script
+        shell: pwsh
+        run: |
+          systeminfo
+          git --version
+          node --version
+          npm --version
 
-  macos_info:
-    name: macos-xcode-info
-    runs-on: macos-latest
+  linux_info:
+    name: Linux system info
+    runs-on: ubuntu-latest
     steps:
-    - name: Run script
-      run: |
-        xcodebuild -version -sdk
-        xcrun --sdk iphoneos --show-sdk-path
-        
-  macos_setup_xcode:
-    name: xcode-setup-xcode
-    runs-on: macos-latest
-    steps:
-    - uses: maxim-lobanov/setup-xcode@v1
-      with:
-        xcode-version: '11'
-    - name: Run script
-      run: |
-        xcodebuild -version -sdk
-        xcrun --sdk iphoneos --show-sdk-path
-        
-  macos_setup_xcode2:
-    name: xcode-setup-xcode2
-    runs-on: macos-latest
-    steps:
-    - uses: maxim-lobanov/setup-xcode@v1
-      with:
-        xcode-version: '12.4.0'
-    - name: Run script
-      run: |
-        xcodebuild -version -sdk
-        xcrun --sdk iphoneos --show-sdk-path
-        
+      - name: Run script
+        run: |
+          uname -a
+          git --version
+          node --version
+          npm --version

@@ -1,0 +1,13 @@
+diff --git a/node.gyp b/node.gyp
+index f9ee71d..2c39218 100644
+--- a/node.gyp
++++ b/node.gyp
+@@ -446,7 +446,7 @@
+       [ 'OS=="win" and '
+         'node_use_openssl=="true" and '
+         'node_shared_openssl=="false"', {
+-        'use_openssl_def%': 1,
++        'use_openssl_def%': 0,
+       }, {
+         'use_openssl_def%': 0,
+       }],

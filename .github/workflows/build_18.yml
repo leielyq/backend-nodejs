@@ -1,4 +1,4 @@
-name: build nodejs v16
+name: build nodejs v18
 
 on:
   workflow_dispatch:
@@ -8,9 +8,9 @@ on:
         required: true
 
 env:
-  VERSION: 16.16.0
-  NODE_MODULE_VERSION: 93
-  OUTPUT_DIR: nodejs_16
+  VERSION: 18.20.8
+  NODE_MODULE_VERSION: 108
+  OUTPUT_DIR: nodejs_18
 
 jobs:
   build_windows:
