@@ -33,7 +33,7 @@ const desktopBuildWorkflows = [
   ...Object.values(expectedNodeBuilds).map((config) => config.file),
 ];
 
-const preferredMsvcToolset = '14.34';
+const preferredMsvcToolset = '14.29';
 
 const removedPlatformFiles = [
   'android-configure',
@@ -109,8 +109,8 @@ for (const workflowFile of desktopBuildWorkflows) {
     `${workflowFile} must pin Windows builds to MSVC ${preferredMsvcToolset}`
   );
   assert(
-    workflow.includes('Install MSVC 14.34 toolset'),
-    `${workflowFile} must install/verify the MSVC 14.34 toolset before Windows builds`
+    workflow.includes('Install MSVC 14.29 toolset'),
+    `${workflowFile} must install/verify the MSVC 14.29 toolset before Windows builds`
   );
   assert(
     workflow.includes('.\\node-script\\ensure_msvc_toolset.ps1 -ToolsetVersion $env:MSVC_TOOLSET_VERSION'),
@@ -120,8 +120,8 @@ for (const workflowFile of desktopBuildWorkflows) {
 
 const windowsTrybuild = readText('windows_trybuild.cmd');
 assert(
-  windowsTrybuild.includes('set "PREFERRED_MSVC_TOOLSET_VERSION=14.34"'),
-  'windows_trybuild.cmd must default to MSVC 14.34'
+  windowsTrybuild.includes('set "PREFERRED_MSVC_TOOLSET_VERSION=14.29"'),
+  'windows_trybuild.cmd must default to MSVC 14.29'
 );
 assert(
   windowsTrybuild.includes('select_msvc_toolset.js') && windowsTrybuild.includes('%PREFERRED_MSVC_TOOLSET_VERSION%'),
@@ -129,12 +129,12 @@ assert(
 );
 assert(
   fs.existsSync(path.join(repoRoot, 'node-script', 'ensure_msvc_toolset.ps1')),
-  'missing MSVC 14.34 setup script'
+  'missing MSVC setup script'
 );
 const ensureMsvcToolset = readText(path.join('node-script', 'ensure_msvc_toolset.ps1'));
 assert(
-  ensureMsvcToolset.includes('--removeOos false'),
-  'ensure_msvc_toolset.ps1 must preserve out-of-support MSVC 14.34 during Visual Studio modify'
+  ensureMsvcToolset.includes('Microsoft.VisualStudio.Component.VC.14.29.16.11.x86.x64'),
+  'ensure_msvc_toolset.ps1 must know the VS component for MSVC 14.29'
 );
 assert(
   !ensureMsvcToolset.includes('--wait'),

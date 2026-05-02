@@ -9,21 +9,21 @@ const sample = [
   'set vcvars_call="%VCINSTALLDIR%\\Auxiliary\\Build\\vcvarsall.bat" %vcvarsall_arg%',
 ].join('\r\n');
 
-const patched = patchVcbuildText(sample, '14.34');
+const patched = patchVcbuildText(sample, '14.29');
 assert.strictEqual(
-  (patched.match(/-vcvars_ver=14\.34/g) || []).length,
+  (patched.match(/-vcvars_ver=14\.29/g) || []).length,
   2,
-  'must add -vcvars_ver=14.34 to every vcvarsall call'
+  'must add -vcvars_ver=14.29 to every vcvarsall call'
 );
 
 assert.strictEqual(
-  patchVcbuildText(patched, '14.34'),
+  patchVcbuildText(patched, '14.29'),
   patched,
   'patching must be idempotent'
 );
 
 assert.throws(
-  () => patchVcbuildText('echo no vcvars here', '14.34'),
+  () => patchVcbuildText('echo no vcvars here', '14.29'),
   /No vcvarsall calls were patched/
 );
 

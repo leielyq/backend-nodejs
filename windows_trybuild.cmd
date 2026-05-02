@@ -3,7 +3,7 @@ set "WORKSPACE=%GITHUB_WORKSPACE%"
 if "%WORKSPACE%"=="" set "WORKSPACE=%~dp0"
 for %%I in ("%WORKSPACE%") do set "WORKSPACE=%%~fI"
 set "BUILD_ROOT=%WORKSPACE%"
-if "%PREFERRED_MSVC_TOOLSET_VERSION%"=="" set "PREFERRED_MSVC_TOOLSET_VERSION=14.34"
+if "%PREFERRED_MSVC_TOOLSET_VERSION%"=="" set "PREFERRED_MSVC_TOOLSET_VERSION=14.29"
 
 cd /d "%BUILD_ROOT%" || exit /b 1
 git clone https://github.com/nodejs/node.git

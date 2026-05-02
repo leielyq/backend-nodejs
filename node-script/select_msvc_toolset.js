@@ -31,7 +31,7 @@ function patchVcbuildFile(vcbuildPath, toolsetVersion) {
 }
 
 function main(argv) {
-  const [, , vcbuildPath = 'vcbuild.bat', toolsetVersion = process.env.PREFERRED_MSVC_TOOLSET_VERSION || '14.34'] = argv;
+  const [, , vcbuildPath = 'vcbuild.bat', toolsetVersion = process.env.PREFERRED_MSVC_TOOLSET_VERSION || '14.29'] = argv;
 
   try {
     const patchedPath = patchVcbuildFile(vcbuildPath, toolsetVersion);

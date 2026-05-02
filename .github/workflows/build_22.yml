@@ -11,7 +11,7 @@ env:
   VERSION: 22.22.2
   NODE_MODULE_VERSION: 127
   OUTPUT_DIR: nodejs_22
-  MSVC_TOOLSET_VERSION: 14.34
+  MSVC_TOOLSET_VERSION: 14.29
 
 jobs:
   build_windows:
@@ -22,7 +22,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Install MSVC 14.34 toolset
+      - name: Install MSVC 14.29 toolset
         shell: pwsh
         run: .\node-script\ensure_msvc_toolset.ps1 -ToolsetVersion $env:MSVC_TOOLSET_VERSION
       - name: npm install
@@ -54,7 +54,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Install MSVC 14.34 toolset
+      - name: Install MSVC 14.29 toolset
         shell: pwsh
         run: .\node-script\ensure_msvc_toolset.ps1 -ToolsetVersion $env:MSVC_TOOLSET_VERSION
       - name: npm install

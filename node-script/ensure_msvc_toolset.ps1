@@ -1,14 +1,19 @@
 param(
-  [string]$ToolsetVersion = "14.34"
+  [string]$ToolsetVersion = "14.29"
 )
 
 $ErrorActionPreference = "Stop"
 
-if ($ToolsetVersion -ne "14.34") {
-  throw "This workflow is currently pinned to the MSVC 14.34 servicing series, got '$ToolsetVersion'."
+$componentIds = @{
+  "14.29" = "Microsoft.VisualStudio.Component.VC.14.29.16.11.x86.x64"
+  "14.34" = "Microsoft.VisualStudio.Component.VC.14.34.17.4.x86.x64"
 }
 
-$componentId = "Microsoft.VisualStudio.Component.VC.14.34.17.4.x86.x64"
+if (-not $componentIds.ContainsKey($ToolsetVersion)) {
+  throw "Unsupported MSVC toolset '$ToolsetVersion'. Supported versions: $($componentIds.Keys -join ', ')"
+}
+
+$componentId = $componentIds[$ToolsetVersion]
 $programFilesX86 = ${env:ProgramFiles(x86)}
 if (-not $programFilesX86) {
   throw "ProgramFiles(x86) is not set; cannot locate Visual Studio Installer."
@@ -56,6 +61,9 @@ function Format-InstalledMsvcToolsets([string]$InstallPath) {
 }
 
 $installPath = Get-VisualStudioInstallPath
+Write-Host "Visual Studio install path: $installPath"
+Write-Host "Installed MSVC toolsets before selection: $(Format-InstalledMsvcToolsets -InstallPath $installPath)"
+
 $toolsets = @(Get-MsvcToolsetDirectories -InstallPath $installPath)
 
 if ($toolsets.Count -eq 0) {
@@ -69,6 +77,7 @@ if ($toolsets.Count -eq 0) {
     throw "Visual Studio Installer failed with exit code $LASTEXITCODE."
   }
 
+  Write-Host "Installed MSVC toolsets after installer: $(Format-InstalledMsvcToolsets -InstallPath $installPath)"
   $toolsets = @(Get-MsvcToolsetDirectories -InstallPath $installPath)
 }
 
