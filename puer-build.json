@@ -19,8 +19,31 @@
     },
     "copy-libraries": {
         "win": {
-            "ia32": ["/lib/Win32/libnode.dll", "/lib/Win32/node.exe"],
-            "x64": ["/lib/Win64/libnode.dll", "/lib/Win64/node.exe"]
+            "ia32": [
+                "/lib/Win32/libnode.dll",
+                "/lib/Win32/node.exe",
+                "/lib/Win32/concrt140.dll",
+                "/lib/Win32/msvcp140.dll",
+                "/lib/Win32/msvcp140_1.dll",
+                "/lib/Win32/msvcp140_2.dll",
+                "/lib/Win32/msvcp140_atomic_wait.dll",
+                "/lib/Win32/msvcp140_codecvt_ids.dll",
+                "/lib/Win32/vccorlib140.dll",
+                "/lib/Win32/vcruntime140.dll"
+            ],
+            "x64": [
+                "/lib/Win64/libnode.dll",
+                "/lib/Win64/node.exe",
+                "/lib/Win64/concrt140.dll",
+                "/lib/Win64/msvcp140.dll",
+                "/lib/Win64/msvcp140_1.dll",
+                "/lib/Win64/msvcp140_2.dll",
+                "/lib/Win64/msvcp140_atomic_wait.dll",
+                "/lib/Win64/msvcp140_codecvt_ids.dll",
+                "/lib/Win64/vccorlib140.dll",
+                "/lib/Win64/vcruntime140.dll",
+                "/lib/Win64/vcruntime140_1.dll"
+            ]
         },
         "linux": {
             "x64": ["/lib/Linux/libnode.so.${NODE_MODULE_VERSION}"]

@@ -3,13 +3,15 @@ const path = require('path');
 
 const VCVARS_CALL_PATTERN =
   'set vcvars_call="%VCINSTALLDIR%\\Auxiliary\\Build\\vcvarsall.bat" %vcvarsall_arg%';
+const VS_INSTALL_OVERRIDE =
+  'if defined PREFERRED_VS_INSTALL_PATH set "VCINSTALLDIR=%PREFERRED_VS_INSTALL_PATH%\\VC\\"';
 
 function patchVcbuildText(text, toolsetVersion) {
   if (!toolsetVersion || !/^\d+\.\d+$/.test(toolsetVersion)) {
     throw new Error(`Invalid MSVC toolset version: ${toolsetVersion}`);
   }
 
-  const replacement = `${VCVARS_CALL_PATTERN} -vcvars_ver=${toolsetVersion}`;
+  const replacement = `${VS_INSTALL_OVERRIDE}\r\n${VCVARS_CALL_PATTERN} -vcvars_ver=${toolsetVersion}`;
   if (text.includes(replacement)) {
     return text;
   }

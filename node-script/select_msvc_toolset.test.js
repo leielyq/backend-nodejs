@@ -15,6 +15,11 @@ assert.strictEqual(
   2,
   'must add -vcvars_ver=14.29 to every vcvarsall call'
 );
+assert.strictEqual(
+  (patched.match(/if defined PREFERRED_VS_INSTALL_PATH/g) || []).length,
+  2,
+  'must force vcbuild.bat to use the selected Visual Studio installation'
+);
 
 assert.strictEqual(
   patchVcbuildText(patched, '14.29'),

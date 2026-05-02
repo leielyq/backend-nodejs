@@ -44,6 +44,19 @@ const publicNodeHeaders = [
   'node_object_wrap.h',
   'node_version.h',
 ];
+const commonWinRuntimeLibraries = [
+  'concrt140.dll',
+  'msvcp140.dll',
+  'msvcp140_1.dll',
+  'msvcp140_2.dll',
+  'msvcp140_atomic_wait.dll',
+  'msvcp140_codecvt_ids.dll',
+  'vccorlib140.dll',
+  'vcruntime140.dll',
+];
+const win64OnlyRuntimeLibraries = [
+  'vcruntime140_1.dll',
+];
 
 const removedPlatformFiles = [
   'android-configure',
@@ -147,8 +160,24 @@ assert(
   'ensure_msvc_toolset.ps1 must know the VS component for MSVC 14.29'
 );
 assert(
+  ensureMsvcToolset.includes('Get-VisualStudioInstallPaths'),
+  'ensure_msvc_toolset.ps1 must inspect all Visual Studio installations'
+);
+assert(
+  !ensureMsvcToolset.includes('-latest -products'),
+  'ensure_msvc_toolset.ps1 must not check only the latest Visual Studio installation'
+);
+assert(
   !ensureMsvcToolset.includes('--wait'),
   'ensure_msvc_toolset.ps1 must not pass unsupported --wait to Visual Studio Installer setup.exe'
+);
+assert(
+  ensureMsvcToolset.includes('PREFERRED_VS_INSTALL_PATH=$installPath'),
+  'ensure_msvc_toolset.ps1 must export the selected Visual Studio install path'
+);
+assert(
+  ensureMsvcToolset.includes('PREFERRED_VC_REDIST_ROOT='),
+  'ensure_msvc_toolset.ps1 must export the selected VC runtime redistributable root'
 );
 assert(
   fs.existsSync(path.join(repoRoot, 'node-script', 'select_msvc_toolset.js')),
@@ -179,6 +208,24 @@ for (const windowsUploadScript of ['windows_32.cmd', 'windows_64.cmd']) {
     script.includes('node\\deps\\v8\\include'),
     `${windowsUploadScript} must export V8 headers`
   );
+  assert(
+    script.includes('PREFERRED_VC_REDIST_ROOT'),
+    `${windowsUploadScript} must locate the selected VC runtime redistributable root`
+  );
+  assert(
+    !script.includes('-latest -products'),
+    `${windowsUploadScript} must not check only the latest Visual Studio installation`
+  );
+  assert(
+    script.includes('Microsoft.VC*.CRT'),
+    `${windowsUploadScript} must find the selected VC runtime CRT directory`
+  );
+  assert(
+    script.includes('concrt140.dll') &&
+      script.includes('msvcp140*.dll') &&
+      script.includes('vcruntime140*.dll'),
+    `${windowsUploadScript} must export matching Visual C++ runtime DLLs`
+  );
 }
 
 for (const entry of fs.readdirSync(workflowsDir)) {
@@ -200,5 +247,23 @@ assert(!('osx' in puerBuild['link-libraries']), 'puer-build.json must not expose
 assert(!('ios' in puerBuild['copy-libraries']), 'puer-build.json must not expose iOS copy libraries');
 assert.strictEqual(puerBuild['link-libraries'].linux.x64[0], '/lib/Linux/libnode.so.${NODE_MODULE_VERSION}');
 assert.strictEqual(puerBuild['copy-libraries'].linux.x64[0], '/lib/Linux/libnode.so.${NODE_MODULE_VERSION}');
+
+for (const runtime of commonWinRuntimeLibraries) {
+  assert(
+    puerBuild['copy-libraries'].win.x64.includes(`/lib/Win64/${runtime}`),
+    `puer-build.json must copy Win64 VC runtime ${runtime}`
+  );
+  assert(
+    puerBuild['copy-libraries'].win.ia32.includes(`/lib/Win32/${runtime}`),
+    `puer-build.json must copy Win32 VC runtime ${runtime}`
+  );
+}
+
+for (const runtime of win64OnlyRuntimeLibraries) {
+  assert(
+    puerBuild['copy-libraries'].win.x64.includes(`/lib/Win64/${runtime}`),
+    `puer-build.json must copy Win64 VC runtime ${runtime}`
+  );
+}
 
 console.log('CI config tests passed');
