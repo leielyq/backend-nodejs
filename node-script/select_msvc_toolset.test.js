@@ -9,11 +9,11 @@ const sample = [
   'set vcvars_call="%VCINSTALLDIR%\\Auxiliary\\Build\\vcvarsall.bat" %vcvarsall_arg%',
 ].join('\r\n');
 
-const patched = patchVcbuildText(sample, '14.29');
+const patched = patchVcbuildText(sample);
 assert.strictEqual(
-  (patched.match(/-vcvars_ver=14\.29/g) || []).length,
-  2,
-  'must add -vcvars_ver=14.29 to every vcvarsall call'
+  (patched.match(/-vcvars_ver=/g) || []).length,
+  0,
+  'must not force a fixed MSVC toolset by default'
 );
 assert.strictEqual(
   (patched.match(/if defined PREFERRED_VS_INSTALL_PATH/g) || []).length,
@@ -22,13 +22,13 @@ assert.strictEqual(
 );
 
 assert.strictEqual(
-  patchVcbuildText(patched, '14.29'),
+  patchVcbuildText(patched),
   patched,
   'patching must be idempotent'
 );
 
 assert.throws(
-  () => patchVcbuildText('echo no vcvars here', '14.29'),
+  () => patchVcbuildText('echo no vcvars here'),
   /No vcvarsall calls were patched/
 );
 

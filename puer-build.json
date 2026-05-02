@@ -10,8 +10,8 @@
     },
     "link-libraries": {
         "win": {
-            "ia32": ["/Lib/Win32/libnode.lib"],
-            "x64": ["/Lib/Win64/libnode.lib"]
+            "ia32": ["/lib/Win32/libnode.lib"],
+            "x64": ["/lib/Win64/libnode.lib"]
         },
         "linux": {
             "x64": ["/lib/Linux/libnode.so.${NODE_MODULE_VERSION}"]

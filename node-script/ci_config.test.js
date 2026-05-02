@@ -33,7 +33,6 @@ const desktopBuildWorkflows = [
   ...Object.values(expectedNodeBuilds).map((config) => config.file),
 ];
 
-const preferredMsvcToolset = '14.29';
 const publicNodeHeaders = [
   'js_native_api.h',
   'js_native_api_types.h',
@@ -128,27 +127,31 @@ for (const workflowFile of desktopBuildWorkflows) {
     `${workflowFile} must install libc++ headers because linux.sh builds with -stdlib=libc++`
   );
   assert(
-    workflow.includes(`MSVC_TOOLSET_VERSION: ${preferredMsvcToolset}`),
-    `${workflowFile} must pin Windows builds to MSVC ${preferredMsvcToolset}`
+    !workflow.includes('MSVC_TOOLSET_VERSION:'),
+    `${workflowFile} must not pin Windows builds to a fixed MSVC toolset`
   );
   assert(
-    workflow.includes('Install MSVC 14.29 toolset'),
-    `${workflowFile} must install/verify the MSVC 14.29 toolset before Windows builds`
+    workflow.includes('Select latest MSVC toolset'),
+    `${workflowFile} must select the latest MSVC toolset before Windows builds`
   );
   assert(
-    workflow.includes('.\\node-script\\ensure_msvc_toolset.ps1 -ToolsetVersion $env:MSVC_TOOLSET_VERSION'),
-    `${workflowFile} must use ensure_msvc_toolset.ps1 for Windows toolset setup`
+    workflow.includes('.\\node-script\\ensure_msvc_toolset.ps1'),
+    `${workflowFile} must use ensure_msvc_toolset.ps1 for Windows toolset/runtime discovery`
+  );
+  assert(
+    !workflow.includes('-ToolsetVersion'),
+    `${workflowFile} must not pass a fixed MSVC toolset version`
   );
 }
 
 const windowsTrybuild = readText('windows_trybuild.cmd');
 assert(
-  windowsTrybuild.includes('set "PREFERRED_MSVC_TOOLSET_VERSION=14.29"'),
-  'windows_trybuild.cmd must default to MSVC 14.29'
+  !windowsTrybuild.includes('PREFERRED_MSVC_TOOLSET_VERSION=14.29'),
+  'windows_trybuild.cmd must not default to a fixed MSVC toolset'
 );
 assert(
-  windowsTrybuild.includes('select_msvc_toolset.js') && windowsTrybuild.includes('%PREFERRED_MSVC_TOOLSET_VERSION%'),
-  'windows_trybuild.cmd must patch Node vcbuild.bat to use the preferred MSVC toolset'
+  windowsTrybuild.includes('select_msvc_toolset.js') && !windowsTrybuild.includes('%PREFERRED_MSVC_TOOLSET_VERSION%'),
+  'windows_trybuild.cmd must patch Node vcbuild.bat without forcing a fixed MSVC toolset'
 );
 assert(
   fs.existsSync(path.join(repoRoot, 'node-script', 'ensure_msvc_toolset.ps1')),
@@ -156,16 +159,12 @@ assert(
 );
 const ensureMsvcToolset = readText(path.join('node-script', 'ensure_msvc_toolset.ps1'));
 assert(
-  ensureMsvcToolset.includes('Microsoft.VisualStudio.Component.VC.14.29.16.11.x86.x64'),
-  'ensure_msvc_toolset.ps1 must know the VS component for MSVC 14.29'
+  !ensureMsvcToolset.includes('Microsoft.VisualStudio.Component.VC.14.29.16.11.x86.x64'),
+  'ensure_msvc_toolset.ps1 must not install a fixed MSVC 14.29 component'
 );
 assert(
-  ensureMsvcToolset.includes('Get-VisualStudioInstallPaths'),
-  'ensure_msvc_toolset.ps1 must inspect all Visual Studio installations'
-);
-assert(
-  !ensureMsvcToolset.includes('-latest -products'),
-  'ensure_msvc_toolset.ps1 must not check only the latest Visual Studio installation'
+  ensureMsvcToolset.includes('-latest -products'),
+  'ensure_msvc_toolset.ps1 must select the latest Visual Studio installation'
 );
 assert(
   !ensureMsvcToolset.includes('--wait'),
@@ -182,6 +181,11 @@ assert(
 assert(
   fs.existsSync(path.join(repoRoot, 'node-script', 'select_msvc_toolset.js')),
   'missing Node vcbuild MSVC selector script'
+);
+const selectMsvcToolset = readText(path.join('node-script', 'select_msvc_toolset.js'));
+assert(
+  !selectMsvcToolset.includes('PREFERRED_MSVC_TOOLSET_VERSION') && !selectMsvcToolset.includes('-vcvars_ver'),
+  'select_msvc_toolset.js must not force a fixed MSVC toolset'
 );
 
 const linuxBuildScript = readText('linux.sh');
@@ -209,12 +213,20 @@ for (const windowsUploadScript of ['windows_32.cmd', 'windows_64.cmd']) {
     `${windowsUploadScript} must export V8 headers`
   );
   assert(
+    script.includes('puerts-node\\nodejs\\lib\\'),
+    `${windowsUploadScript} must export Windows binaries under lowercase lib`
+  );
+  assert(
+    !script.includes('puerts-node\\nodejs\\Lib\\'),
+    `${windowsUploadScript} must not use uppercase Lib in export paths`
+  );
+  assert(
     script.includes('PREFERRED_VC_REDIST_ROOT'),
     `${windowsUploadScript} must locate the selected VC runtime redistributable root`
   );
   assert(
-    !script.includes('-latest -products'),
-    `${windowsUploadScript} must not check only the latest Visual Studio installation`
+    script.includes('-latest -products'),
+    `${windowsUploadScript} must use the latest Visual Studio installation when falling back to vswhere`
   );
   assert(
     script.includes('Microsoft.VC*.CRT'),
@@ -245,6 +257,8 @@ assert.deepStrictEqual(Object.keys(puerBuild.skip), ['win']);
 assert(!('android' in puerBuild['link-libraries']), 'puer-build.json must not expose Android link libraries');
 assert(!('osx' in puerBuild['link-libraries']), 'puer-build.json must not expose macOS link libraries');
 assert(!('ios' in puerBuild['copy-libraries']), 'puer-build.json must not expose iOS copy libraries');
+assert.strictEqual(puerBuild['link-libraries'].win.ia32[0], '/lib/Win32/libnode.lib');
+assert.strictEqual(puerBuild['link-libraries'].win.x64[0], '/lib/Win64/libnode.lib');
 assert.strictEqual(puerBuild['link-libraries'].linux.x64[0], '/lib/Linux/libnode.so.${NODE_MODULE_VERSION}');
 assert.strictEqual(puerBuild['copy-libraries'].linux.x64[0], '/lib/Linux/libnode.so.${NODE_MODULE_VERSION}');
 
