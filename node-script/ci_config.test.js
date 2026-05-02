@@ -137,6 +137,10 @@ assert(
   'ensure_msvc_toolset.ps1 must preserve out-of-support MSVC 14.34 during Visual Studio modify'
 );
 assert(
+  !ensureMsvcToolset.includes('--wait'),
+  'ensure_msvc_toolset.ps1 must not pass unsupported --wait to Visual Studio Installer setup.exe'
+);
+assert(
   fs.existsSync(path.join(repoRoot, 'node-script', 'select_msvc_toolset.js')),
   'missing Node vcbuild MSVC selector script'
 );

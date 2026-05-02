@@ -64,7 +64,7 @@ if ($toolsets.Count -eq 0) {
   }
 
   Write-Host "MSVC $ToolsetVersion toolset not found. Installing component $componentId..."
-  & $installer modify --installPath $installPath --add $componentId --quiet --wait --norestart --nocache --removeOos false
+  & $installer modify --installPath $installPath --add $componentId --quiet --norestart --nocache --removeOos false
   if ($LASTEXITCODE -ne 0) {
     throw "Visual Studio Installer failed with exit code $LASTEXITCODE."
   }
