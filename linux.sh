@@ -29,10 +29,17 @@ mkdir -p ../puerts-node/nodejs/include
 mkdir -p ../puerts-node/nodejs/deps/uv/include
 mkdir -p ../puerts-node/nodejs/deps/v8/include
 
-cp src/node.h ../puerts-node/nodejs/include
-cp src/node_version.h ../puerts-node/nodejs/include
-cp -r deps/uv/include ../puerts-node/nodejs/deps/uv
-cp -r deps/v8/include ../puerts-node/nodejs/deps/v8
+echo "=====[Copying public Node.js headers]====="
+cp src/js_native_api.h ../puerts-node/nodejs/include || exit 1
+cp src/js_native_api_types.h ../puerts-node/nodejs/include || exit 1
+cp src/node.h ../puerts-node/nodejs/include || exit 1
+cp src/node_api.h ../puerts-node/nodejs/include || exit 1
+cp src/node_api_types.h ../puerts-node/nodejs/include || exit 1
+cp src/node_buffer.h ../puerts-node/nodejs/include || exit 1
+cp src/node_object_wrap.h ../puerts-node/nodejs/include || exit 1
+cp src/node_version.h ../puerts-node/nodejs/include || exit 1
+cp -r deps/uv/include ../puerts-node/nodejs/deps/uv || exit 1
+cp -r deps/v8/include ../puerts-node/nodejs/deps/v8 || exit 1
 
 mkdir -p ../puerts-node/nodejs/lib/Linux/
 cp out/Release/libnode.so.* ../puerts-node/nodejs/lib/Linux/

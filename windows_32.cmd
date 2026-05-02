@@ -13,6 +13,18 @@ md puerts-node\nodejs\include
 md puerts-node\nodejs\deps\uv\include
 md puerts-node\nodejs\deps\v8\include
 
+echo =====[ Copying public Node.js headers ]=====
+copy /y "node\src\js_native_api.h" ".\puerts-node\nodejs\include\" || exit /b 1
+copy /y "node\src\js_native_api_types.h" ".\puerts-node\nodejs\include\" || exit /b 1
+copy /y "node\src\node.h" ".\puerts-node\nodejs\include\" || exit /b 1
+copy /y "node\src\node_api.h" ".\puerts-node\nodejs\include\" || exit /b 1
+copy /y "node\src\node_api_types.h" ".\puerts-node\nodejs\include\" || exit /b 1
+copy /y "node\src\node_buffer.h" ".\puerts-node\nodejs\include\" || exit /b 1
+copy /y "node\src\node_object_wrap.h" ".\puerts-node\nodejs\include\" || exit /b 1
+copy /y "node\src\node_version.h" ".\puerts-node\nodejs\include\" || exit /b 1
+xcopy /e /i /y "node\deps\uv\include" ".\puerts-node\nodejs\deps\uv\include\" || exit /b 1
+xcopy /e /i /y "node\deps\v8\include" ".\puerts-node\nodejs\deps\v8\include\" || exit /b 1
+
 md puerts-node\nodejs\Lib\Win32\
 copy /y "node\out\Release\libnode.dll" ".\puerts-node\nodejs\Lib\Win32\"
 copy /y "node\out\Release\libnode.exp" ".\puerts-node\nodejs\Lib\Win32\"

@@ -34,6 +34,16 @@ const desktopBuildWorkflows = [
 ];
 
 const preferredMsvcToolset = '14.29';
+const publicNodeHeaders = [
+  'js_native_api.h',
+  'js_native_api_types.h',
+  'node.h',
+  'node_api.h',
+  'node_api_types.h',
+  'node_buffer.h',
+  'node_object_wrap.h',
+  'node_version.h',
+];
 
 const removedPlatformFiles = [
   'android-configure',
@@ -144,6 +154,32 @@ assert(
   fs.existsSync(path.join(repoRoot, 'node-script', 'select_msvc_toolset.js')),
   'missing Node vcbuild MSVC selector script'
 );
+
+const linuxBuildScript = readText('linux.sh');
+for (const header of publicNodeHeaders) {
+  assert(
+    linuxBuildScript.includes(`cp src/${header} ../puerts-node/nodejs/include`),
+    `linux.sh must export public Node header ${header}`
+  );
+}
+
+for (const windowsUploadScript of ['windows_32.cmd', 'windows_64.cmd']) {
+  const script = readText(windowsUploadScript);
+  for (const header of publicNodeHeaders) {
+    assert(
+      script.includes(`node\\src\\${header}`),
+      `${windowsUploadScript} must export public Node header ${header}`
+    );
+  }
+  assert(
+    script.includes('node\\deps\\uv\\include'),
+    `${windowsUploadScript} must export libuv headers`
+  );
+  assert(
+    script.includes('node\\deps\\v8\\include'),
+    `${windowsUploadScript} must export V8 headers`
+  );
+}
 
 for (const entry of fs.readdirSync(workflowsDir)) {
   if (!entry.endsWith('.yml') && !entry.endsWith('.yaml')) continue;
