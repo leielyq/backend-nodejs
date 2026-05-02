@@ -1,0 +1,71 @@
+param(
+  [string]$ToolsetVersion = "14.34"
+)
+
+$ErrorActionPreference = "Stop"
+
+if ($ToolsetVersion -ne "14.34") {
+  throw "This workflow is currently pinned to the MSVC 14.34 servicing series, got '$ToolsetVersion'."
+}
+
+$componentId = "Microsoft.VisualStudio.Component.VC.14.34.17.4.x86.x64"
+$programFilesX86 = ${env:ProgramFiles(x86)}
+if (-not $programFilesX86) {
+  throw "ProgramFiles(x86) is not set; cannot locate Visual Studio Installer."
+}
+
+$installerRoot = Join-Path $programFilesX86 "Microsoft Visual Studio\Installer"
+$vswhere = Join-Path $installerRoot "vswhere.exe"
+$installer = Join-Path $installerRoot "setup.exe"
+
+if (-not (Test-Path -LiteralPath $vswhere)) {
+  throw "vswhere.exe not found: $vswhere"
+}
+
+function Get-VisualStudioInstallPath {
+  $path = & $vswhere -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+  if ($LASTEXITCODE -ne 0 -or -not $path) {
+    throw "No Visual Studio installation with VC tools was found."
+  }
+  return ($path | Select-Object -First 1).Trim()
+}
+
+function Get-MsvcToolsetDirectories([string]$InstallPath) {
+  $toolsRoot = Join-Path $InstallPath "VC\Tools\MSVC"
+  if (-not (Test-Path -LiteralPath $toolsRoot)) {
+    return @()
+  }
+
+  return Get-ChildItem -LiteralPath $toolsRoot -Directory |
+    Where-Object { $_.Name -like "$ToolsetVersion.*" } |
+    Sort-Object -Property Name -Descending
+}
+
+$installPath = Get-VisualStudioInstallPath
+$toolsets = @(Get-MsvcToolsetDirectories -InstallPath $installPath)
+
+if ($toolsets.Count -eq 0) {
+  if (-not (Test-Path -LiteralPath $installer)) {
+    throw "Visual Studio Installer setup.exe not found: $installer"
+  }
+
+  Write-Host "MSVC $ToolsetVersion toolset not found. Installing component $componentId..."
+  & $installer modify --installPath $installPath --add $componentId --quiet --wait --norestart --nocache
+  if ($LASTEXITCODE -ne 0) {
+    throw "Visual Studio Installer failed with exit code $LASTEXITCODE."
+  }
+
+  $toolsets = @(Get-MsvcToolsetDirectories -InstallPath $installPath)
+}
+
+if ($toolsets.Count -eq 0) {
+  throw "MSVC $ToolsetVersion toolset is still missing after installation."
+}
+
+$selected = $toolsets[0].Name
+Write-Host "Using MSVC toolset $selected from $($toolsets[0].FullName)"
+
+if ($env:GITHUB_ENV) {
+  "PREFERRED_MSVC_TOOLSET_VERSION=$ToolsetVersion" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+  "PREFERRED_MSVC_TOOLSET_FULL_VERSION=$selected" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+}

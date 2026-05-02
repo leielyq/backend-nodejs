@@ -29,7 +29,7 @@
     "wrappy": "^1.0.2"
   },
   "scripts": {
-    "test": "node node-script/ci_config.test.js && node node-script/make_node_exe_forwarder.test.js"
+    "test": "node node-script/ci_config.test.js && node node-script/make_node_exe_forwarder.test.js && node node-script/select_msvc_toolset.test.js"
   },
   "repository": {
     "type": "git",

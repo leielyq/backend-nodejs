@@ -3,6 +3,7 @@ set "WORKSPACE=%GITHUB_WORKSPACE%"
 if "%WORKSPACE%"=="" set "WORKSPACE=%~dp0"
 for %%I in ("%WORKSPACE%") do set "WORKSPACE=%%~fI"
 set "BUILD_ROOT=%WORKSPACE%"
+if "%PREFERRED_MSVC_TOOLSET_VERSION%"=="" set "PREFERRED_MSVC_TOOLSET_VERSION=14.34"
 
 cd /d "%BUILD_ROOT%" || exit /b 1
 git clone https://github.com/nodejs/node.git
@@ -17,6 +18,7 @@ node "%WORKSPACE%\node-script\do-gitpatch.js" -p "%WORKSPACE%\patchs\lib_uv_add_
 copy /y "%WORKSPACE%\zlib.def" deps\zlib\win32\zlib.def
 node "%WORKSPACE%\node-script\add_arraybuffer_new_without_stl.js" deps/v8
 node "%WORKSPACE%\node-script\make_v8_inspector_export.js"
+node "%WORKSPACE%\node-script\select_msvc_toolset.js" vcbuild.bat "%PREFERRED_MSVC_TOOLSET_VERSION%"
 
 echo =====[ Building Node.js ]=====
 .\vcbuild.bat dll openssl-no-asm

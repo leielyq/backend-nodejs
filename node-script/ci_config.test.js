@@ -33,6 +33,8 @@ const desktopBuildWorkflows = [
   ...Object.values(expectedNodeBuilds).map((config) => config.file),
 ];
 
+const preferredMsvcToolset = '14.34';
+
 const removedPlatformFiles = [
   'android-configure',
   'android-configure-static',
@@ -102,7 +104,37 @@ for (const workflowFile of desktopBuildWorkflows) {
     workflow.includes('libc++-dev') && workflow.includes('libc++abi-dev'),
     `${workflowFile} must install libc++ headers because linux.sh builds with -stdlib=libc++`
   );
+  assert(
+    workflow.includes(`MSVC_TOOLSET_VERSION: ${preferredMsvcToolset}`),
+    `${workflowFile} must pin Windows builds to MSVC ${preferredMsvcToolset}`
+  );
+  assert(
+    workflow.includes('Install MSVC 14.34 toolset'),
+    `${workflowFile} must install/verify the MSVC 14.34 toolset before Windows builds`
+  );
+  assert(
+    workflow.includes('.\\node-script\\ensure_msvc_toolset.ps1 -ToolsetVersion $env:MSVC_TOOLSET_VERSION'),
+    `${workflowFile} must use ensure_msvc_toolset.ps1 for Windows toolset setup`
+  );
 }
+
+const windowsTrybuild = readText('windows_trybuild.cmd');
+assert(
+  windowsTrybuild.includes('set "PREFERRED_MSVC_TOOLSET_VERSION=14.34"'),
+  'windows_trybuild.cmd must default to MSVC 14.34'
+);
+assert(
+  windowsTrybuild.includes('select_msvc_toolset.js') && windowsTrybuild.includes('%PREFERRED_MSVC_TOOLSET_VERSION%'),
+  'windows_trybuild.cmd must patch Node vcbuild.bat to use the preferred MSVC toolset'
+);
+assert(
+  fs.existsSync(path.join(repoRoot, 'node-script', 'ensure_msvc_toolset.ps1')),
+  'missing MSVC 14.34 setup script'
+);
+assert(
+  fs.existsSync(path.join(repoRoot, 'node-script', 'select_msvc_toolset.js')),
+  'missing Node vcbuild MSVC selector script'
+);
 
 for (const entry of fs.readdirSync(workflowsDir)) {
   if (!entry.endsWith('.yml') && !entry.endsWith('.yaml')) continue;
