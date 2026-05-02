@@ -41,6 +41,20 @@ function Get-MsvcToolsetDirectories([string]$InstallPath) {
     Sort-Object -Property Name -Descending
 }
 
+function Format-InstalledMsvcToolsets([string]$InstallPath) {
+  $toolsRoot = Join-Path $InstallPath "VC\Tools\MSVC"
+  if (-not (Test-Path -LiteralPath $toolsRoot)) {
+    return "MSVC tools root does not exist: $toolsRoot"
+  }
+
+  $allToolsets = @(Get-ChildItem -LiteralPath $toolsRoot -Directory | Sort-Object -Property Name)
+  if ($allToolsets.Count -eq 0) {
+    return "No MSVC toolset directories found under $toolsRoot"
+  }
+
+  return ($allToolsets | ForEach-Object { $_.Name }) -join ", "
+}
+
 $installPath = Get-VisualStudioInstallPath
 $toolsets = @(Get-MsvcToolsetDirectories -InstallPath $installPath)
 
@@ -50,7 +64,7 @@ if ($toolsets.Count -eq 0) {
   }
 
   Write-Host "MSVC $ToolsetVersion toolset not found. Installing component $componentId..."
-  & $installer modify --installPath $installPath --add $componentId --quiet --wait --norestart --nocache
+  & $installer modify --installPath $installPath --add $componentId --quiet --wait --norestart --nocache --removeOos false
   if ($LASTEXITCODE -ne 0) {
     throw "Visual Studio Installer failed with exit code $LASTEXITCODE."
   }
@@ -59,7 +73,8 @@ if ($toolsets.Count -eq 0) {
 }
 
 if ($toolsets.Count -eq 0) {
-  throw "MSVC $ToolsetVersion toolset is still missing after installation."
+  $installedToolsets = Format-InstalledMsvcToolsets -InstallPath $installPath
+  throw "MSVC $ToolsetVersion toolset is still missing after installation. Installed MSVC toolsets: $installedToolsets"
 }
 
 $selected = $toolsets[0].Name

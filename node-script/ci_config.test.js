@@ -131,6 +131,11 @@ assert(
   fs.existsSync(path.join(repoRoot, 'node-script', 'ensure_msvc_toolset.ps1')),
   'missing MSVC 14.34 setup script'
 );
+const ensureMsvcToolset = readText(path.join('node-script', 'ensure_msvc_toolset.ps1'));
+assert(
+  ensureMsvcToolset.includes('--removeOos false'),
+  'ensure_msvc_toolset.ps1 must preserve out-of-support MSVC 14.34 during Visual Studio modify'
+);
 assert(
   fs.existsSync(path.join(repoRoot, 'node-script', 'select_msvc_toolset.js')),
   'missing Node vcbuild MSVC selector script'
