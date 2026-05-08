@@ -142,6 +142,29 @@ for (const workflowFile of desktopBuildWorkflows) {
     !workflow.includes('-ToolsetVersion'),
     `${workflowFile} must not pass a fixed MSVC toolset version`
   );
+  assert(
+    workflow.includes('Remove Existing Release'),
+    `${workflowFile} must clean up an existing release before publishing`
+  );
+  assert(
+    workflow.includes('GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}'),
+    `${workflowFile} must authenticate GitHub CLI release cleanup with GITHUB_TOKEN`
+  );
+  assert(
+    workflow.includes('gh release delete "${RELEASE_TAG}" --yes --cleanup-tag'),
+    `${workflowFile} must delete an existing release and tag before recreating it`
+  );
+  assert(
+    workflow.includes('gh api --method DELETE "repos/${GITHUB_REPOSITORY}/git/refs/tags/${RELEASE_TAG}"'),
+    `${workflowFile} must delete a leftover git tag before recreating the release`
+  );
+  const expectedReleaseTag = workflowFile === 'build_16_withssl.yml'
+    ? 'RELEASE_TAG: NodeJS_${{ env.VERSION }}_ssl_${{ github.event.inputs.tag_date }}'
+    : 'RELEASE_TAG: NodeJS_${{ env.VERSION }}_${{ github.event.inputs.tag_date }}';
+  assert(
+    workflow.includes(expectedReleaseTag),
+    `${workflowFile} must clean up the same release tag that it publishes`
+  );
 }
 
 const windowsTrybuild = readText('windows_trybuild.cmd');
