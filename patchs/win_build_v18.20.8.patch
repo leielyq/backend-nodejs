@@ -11,3 +11,19 @@ index 08cb3f3..16bacc9 100644
        }, {
          'use_openssl_def%': 0,
        }],
+diff --git a/tools/v8_gypfiles/v8.gyp b/tools/v8_gypfiles/v8.gyp
+index 4fca0eb..5974e2d 100644
+--- a/tools/v8_gypfiles/v8.gyp
++++ b/tools/v8_gypfiles/v8.gyp
+@@ -781,6 +781,11 @@
+         '<@(inspector_all_sources)',
+       ],
+       'conditions': [
++        ['component=="shared_library"', {
++          'defines': [
++            'BUILDING_V8_SHARED',
++          ],
++        }],
+         ['v8_enable_third_party_heap==1', {
+           # TODO(targos): add values from v8_third_party_heap_files to sources
+         }, {

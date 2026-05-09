@@ -91,6 +91,7 @@ function assertNotContains(text, forbidden, context) {
 
 for (const [major, config] of Object.entries(expectedNodeBuilds)) {
   const workflowPath = path.join(workflowsDir, config.file);
+  const winBuildPatch = readText(path.join('patchs', `win_build_v${config.version}.patch`));
   assert(fs.existsSync(workflowPath), `missing workflow for Node ${major}: ${config.file}`);
 
   const workflow = fs.readFileSync(workflowPath, 'utf8');
@@ -110,6 +111,12 @@ for (const [major, config] of Object.entries(expectedNodeBuilds)) {
     fs.existsSync(path.join(repoRoot, 'patchs', `win_build_v${config.version}.patch`)),
     `missing Windows patch for Node ${config.version}`
   );
+  if (major === '18') {
+    assert(
+      winBuildPatch.includes('BUILDING_V8_SHARED'),
+      'Node 18 Windows patch must export V8 private template symbols for shared builds'
+    );
+  }
   assert(
     fs.existsSync(path.join(repoRoot, 'patchs', `lib_uv_add_on_watcher_queue_updated_v${config.version}.patch`)),
     `missing libuv patch for Node ${config.version}`
