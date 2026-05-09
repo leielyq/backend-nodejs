@@ -38,8 +38,14 @@ index 53e83a8..793d2f9 100644
 +class FactoryBase : public TorqueGeneratedFactory<Impl> {
   public:
    // Converts the given boolean condition to JavaScript boolean value.
-@@ -321,0 +320,4 @@ class EXPORT_TEMPLATE_DECLARE(V8_EXPORT_PRIVATE) FactoryBase
+@@ -318,5 +317,9 @@ class EXPORT_TEMPLATE_DECLARE(V8_EXPORT_PRIVATE) FactoryBase
+   friend TorqueGeneratedFactory<Impl>;
+ };
+-
 +extern template class EXPORT_TEMPLATE_DECLARE(V8_EXPORT_PRIVATE)
 +    FactoryBase<Factory>;
 +extern template class EXPORT_TEMPLATE_DECLARE(V8_EXPORT_PRIVATE)
 +    FactoryBase<LocalFactory>;
++
+ }  // namespace internal
+ }  // namespace v8
