@@ -113,8 +113,11 @@ for (const [major, config] of Object.entries(expectedNodeBuilds)) {
   );
   if (major === '18') {
     assert(
-      winBuildPatch.includes('BUILDING_V8_SHARED'),
-      'Node 18 Windows patch must export V8 private template symbols for shared builds'
+      winBuildPatch.includes('BUILDING_V8_SHARED') &&
+        winBuildPatch.includes('extern template class EXPORT_TEMPLATE_DECLARE(V8_EXPORT_PRIVATE)') &&
+        winBuildPatch.includes('FactoryBase<Factory>') &&
+        winBuildPatch.includes('FactoryBase<LocalFactory>'),
+      'Node 18 Windows patch must export V8 shared-library and FactoryBase template symbols'
     );
   }
   assert(

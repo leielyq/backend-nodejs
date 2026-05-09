@@ -27,3 +27,19 @@ index 4fca0eb..5974e2d 100644
          ['v8_enable_third_party_heap==1', {
            # TODO(targos): add values from v8_third_party_heap_files to sources
          }, {
+diff --git a/deps/v8/src/heap/factory-base.h b/deps/v8/src/heap/factory-base.h
+index 53e83a8..793d2f9 100644
+--- a/deps/v8/src/heap/factory-base.h
++++ b/deps/v8/src/heap/factory-base.h
+@@ -62,5 +62,4 @@ class EXPORT_TEMPLATE_DECLARE(V8_EXPORT_PRIVATE) TorqueGeneratedFactory {
+ template <typename Impl>
+-class EXPORT_TEMPLATE_DECLARE(V8_EXPORT_PRIVATE) FactoryBase
+-    : public TorqueGeneratedFactory<Impl> {
++class FactoryBase : public TorqueGeneratedFactory<Impl> {
+  public:
+   // Converts the given boolean condition to JavaScript boolean value.
+@@ -321,0 +320,4 @@ class EXPORT_TEMPLATE_DECLARE(V8_EXPORT_PRIVATE) FactoryBase
++extern template class EXPORT_TEMPLATE_DECLARE(V8_EXPORT_PRIVATE)
++    FactoryBase<Factory>;
++extern template class EXPORT_TEMPLATE_DECLARE(V8_EXPORT_PRIVATE)
++    FactoryBase<LocalFactory>;
