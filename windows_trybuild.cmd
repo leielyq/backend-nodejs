@@ -19,6 +19,23 @@ node "%WORKSPACE%\node-script\add_arraybuffer_new_without_stl.js" deps/v8
 node "%WORKSPACE%\node-script\make_v8_inspector_export.js"
 node "%WORKSPACE%\node-script\select_msvc_toolset.js" vcbuild.bat
 
+echo =====[ Applying security backports ]=====
+rem Security patches backported from newer release lines live in
+rem patchs\security_v<version>\ and are applied in filename order.
+rem A failed security patch must abort the build - never skip silently.
+if exist "%WORKSPACE%\patchs\security_v%VERSION%\*.patch" (
+  for /f "delims=" %%P in ('dir /b /o:n "%WORKSPACE%\patchs\security_v%VERSION%\*.patch"') do (
+    echo Applying security patch: %%P
+    git apply --reject "%WORKSPACE%\patchs\security_v%VERSION%\%%P"
+    if errorlevel 1 (
+      echo ERROR: security patch %%P failed to apply. Check .rej files under node\
+      exit /b 1
+    )
+  )
+) else (
+  echo No security patch directory for v%VERSION%, skipping.
+)
+
 echo =====[ Building Node.js ]=====
 .\vcbuild.bat dll openssl-no-asm
 

@@ -39,6 +39,22 @@ node "%WORKSPACE%\node-script\add_arraybuffer_new_without_stl.js" deps/v8
 node "%WORKSPACE%\node-script\make_v8_inspector_export.js"
 node "%WORKSPACE%\node-script\select_msvc_toolset.js" vcbuild.bat
 
+echo =====[ Applying security backports ]=====
+rem Same convention as windows_trybuild.cmd: patchs\security_v<version>\
+rem applied in filename order; a failed patch aborts the build.
+if exist "%WORKSPACE%\patchs\security_v%VERSION%\*.patch" (
+  for /f "delims=" %%P in ('dir /b /o:n "%WORKSPACE%\patchs\security_v%VERSION%\*.patch"') do (
+    echo Applying security patch: %%P
+    git apply --reject "%WORKSPACE%\patchs\security_v%VERSION%\%%P"
+    if errorlevel 1 (
+      echo ERROR: security patch %%P failed to apply. Check .rej files under node\
+      exit /b 1
+    )
+  )
+) else (
+  echo No security patch directory for v%VERSION%, skipping.
+)
+
 echo =====[ Building Node.js ]=====
 if "%ARCH%"=="" (
   .\vcbuild.bat dll openssl-no-asm

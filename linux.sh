@@ -15,6 +15,20 @@ node $WORKSPACE/node-script/do-gitpatch.js -p $WORKSPACE/patchs/lib_uv_add_on_wa
 node $WORKSPACE/node-script/add_arraybuffer_new_without_stl.js deps/v8
 node $WORKSPACE/node-script/make_v8_inspector_export.js
 
+echo "=====[Applying security backports]====="
+# Security patches backported from newer release lines live in
+# patchs/security_v<version>/ and are applied in filename order.
+# A failed security patch must abort the build - never skip silently.
+SEC_DIR="$WORKSPACE/patchs/security_v$VERSION"
+if ls "$SEC_DIR"/*.patch >/dev/null 2>&1; then
+  for p in "$SEC_DIR"/*.patch; do
+    echo "Applying security patch: $p"
+    git apply --reject "$p" || { echo "ERROR: security patch $p failed. Check .rej files"; exit 1; }
+  done
+else
+  echo "No security patch directory for v$VERSION, skipping."
+fi
+
 echo "=====[Building Node.js]====="
 
 export CC=clang
