@@ -1,0 +1,47 @@
+name: rescue release
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: 'run id whose artifacts should be published'
+        required: true
+      version:
+        description: 'node version string (e.g. 22.23.4)'
+        required: true
+      output_dir:
+        description: 'artifact top-level dir (e.g. nodejs_22)'
+        required: true
+      tag:
+        description: 'release tag (e.g. NodeJS_22.23.4_261022)'
+        required: true
+
+jobs:
+  publish:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          run-id: ${{ github.event.inputs.run_id }}
+          path: nodejs_bin/
+          merge-multiple: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create Release Asset
+        run: |
+          ls nodejs_bin/
+          cd nodejs_bin/ && tar cvfz "../nodejs_bin_${{ github.event.inputs.version }}.tgz" "${{ github.event.inputs.output_dir }}" && cd -
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ github.event.inputs.tag }}
+        run: |
+          set -euo pipefail
+          if gh release view "${RELEASE_TAG}" >/dev/null 2>&1; then
+            gh release delete "${RELEASE_TAG}" --yes --cleanup-tag
+          fi
+          if gh api "repos/${GITHUB_REPOSITORY}/git/ref/tags/${RELEASE_TAG}" >/dev/null 2>&1; then
+            gh api --method DELETE "repos/${GITHUB_REPOSITORY}/git/refs/tags/${RELEASE_TAG}"
+          fi
+          gh release create "${RELEASE_TAG}" --title "${RELEASE_TAG}" "./nodejs_bin_${{ github.event.inputs.version }}.tgz"
