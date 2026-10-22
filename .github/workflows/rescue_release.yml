@@ -38,10 +38,10 @@ jobs:
           RELEASE_TAG: ${{ github.event.inputs.tag }}
         run: |
           set -euo pipefail
-          if gh release view "${RELEASE_TAG}" >/dev/null 2>&1; then
-            gh release delete "${RELEASE_TAG}" --yes --cleanup-tag
+          if gh release view -R "${GITHUB_REPOSITORY}" "${RELEASE_TAG}" >/dev/null 2>&1; then
+            gh release delete -R "${GITHUB_REPOSITORY}" "${RELEASE_TAG}" --yes --cleanup-tag
           fi
           if gh api "repos/${GITHUB_REPOSITORY}/git/ref/tags/${RELEASE_TAG}" >/dev/null 2>&1; then
             gh api --method DELETE "repos/${GITHUB_REPOSITORY}/git/refs/tags/${RELEASE_TAG}"
           fi
-          gh release create "${RELEASE_TAG}" --title "${RELEASE_TAG}" "./nodejs_bin_${{ github.event.inputs.version }}.tgz"
+          gh release create -R "${GITHUB_REPOSITORY}" "${RELEASE_TAG}" --title "${RELEASE_TAG}" "./nodejs_bin_${{ github.event.inputs.version }}.tgz"
