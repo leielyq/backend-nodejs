@@ -1,0 +1,67 @@
+name: security backport probe
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_tag:
+        description: 'base node tag to test cherry-picks against'
+        required: true
+        default: 'v20.20.2'
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    env:
+      BASE_TAG: ${{ github.event.inputs.base_tag }}
+      # Oct 2026 security fixes (v22.23.4), in apply order
+      COMMITS: >-
+        67d294739f7b
+        19c505600222
+        d7663560ac9e
+        beb4cd4cd31c
+        4342503fd8b5
+        a62b7d536245
+        e7b2985d5978
+        dd6b47573b54
+        50ab804edc82
+        ec9e5e4a3e2f
+        68fa0df6d620
+    steps:
+      - name: Clone node source
+        run: |
+          set -euo pipefail
+          git clone --filter=blob:none https://github.com/nodejs/node.git node
+          cd node
+          git checkout "$BASE_TAG"
+          git config user.name probe
+          git config user.email probe@example.com
+      - name: Cherry-pick each security fix
+        run: |
+          set -u
+          cd node
+          : > ../backport_report.txt
+          for sha in $COMMITS; do
+            subject=$(git log -1 --format=%s "$sha" 2>/dev/null || echo "<missing object>")
+            if git cherry-pick -x "$sha" >/dev/null 2>&1; then
+              echo "CLEAN  $sha $subject" | tee -a ../backport_report.txt
+            else
+              git cherry-pick --abort 2>/dev/null || git cherry-pick --quit 2>/dev/null
+              echo "CONFLICT $sha $subject" | tee -a ../backport_report.txt
+            fi
+          done
+      - name: Export patches for cleanly applied commits
+        run: |
+          set -euo pipefail
+          cd node
+          mkdir -p ../patches
+          n=$(git rev-list --count "$BASE_TAG"..HEAD)
+          if [ "$n" -gt 0 ]; then
+            git format-patch -"$n" --start-number 1 -o ../patches "$BASE_TAG"
+          fi
+          ls -la ../patches || true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: backport_report
+          path: |
+            backport_report.txt
+            patches/*
