@@ -15,7 +15,9 @@ env:
 jobs:
   build_windows:
     name: Windows
-    runs-on: windows-latest
+    # windows-latest now ships VS2026 (v18) which node 22.x vcbuild cannot
+    # detect (vswhere range [17.0,18.0)) - pin to the VS2022 image
+    runs-on: windows-2022
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -47,7 +49,7 @@ jobs:
 
   build_windows_32:
     name: Windows-32
-    runs-on: windows-latest
+    runs-on: windows-2022
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
